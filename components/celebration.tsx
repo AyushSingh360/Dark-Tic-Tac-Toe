@@ -61,6 +61,9 @@ export function Celebration() {
           </h2>
         </div>
         <p className="text-xl text-white mt-2 font-mono tracking-wider">SYSTEM UPGRADE ACHIEVED</p>
+        <div className="mt-4 px-4 py-1 border border-white border-opacity-30 inline-block">
+          <span className="text-sm font-mono tracking-wider">DIFFICULTY INCREASED</span>
+        </div>
       </div>
     </div>
   )

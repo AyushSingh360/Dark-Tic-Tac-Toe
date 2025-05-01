@@ -11,6 +11,7 @@ interface GameBoardProps {
   aiDifficulty: number
   onStageComplete: () => void
   onReset: () => void
+  stageId: number
 }
 
 type CellValue = "X" | "O" | null
@@ -19,6 +20,7 @@ export function GameBoard({
   size = 3,
   winCondition = 3,
   aiDifficulty = 0.5,
+  stageId = 1,
   onStageComplete,
   onReset,
 }: GameBoardProps) {
@@ -32,6 +34,7 @@ export function GameBoard({
   const [winningCells, setWinningCells] = useState<[number, number][]>([])
   const [playerScore, setPlayerScore] = useState(0)
   const [aiScore, setAiScore] = useState(0)
+  const [currentStageData, setCurrentStageData] = useState<{ id: string } | null>(null)
 
   // Initialize the board
   useEffect(() => {
@@ -46,12 +49,12 @@ export function GameBoard({
     }
   }, [currentPlayer, winner])
 
-  // Check for winner after each move
   useEffect(() => {
     if (winner === "X") {
       setPlayerScore((prev) => prev + 1)
-      if (playerScore + 1 >= 3) {
-        // Need to win 3 games to complete a stage
+      // Higher stages require more wins
+      const winsRequired = stageId <= 3 ? 3 : stageId <= 6 ? 4 : 5
+      if (playerScore + 1 >= winsRequired) {
         onStageComplete()
       }
     } else if (winner === "O") {
@@ -161,7 +164,7 @@ export function GameBoard({
 
     if (emptyCells.length === 0) return
 
-    let move: [number, number]
+    let move: [number, number] | undefined
 
     // Smart move based on difficulty
     if (Math.random() < aiDifficulty) {
@@ -188,6 +191,49 @@ export function GameBoard({
           }
         }
       }
+
+      // For higher difficulties, look for fork opportunities (two winning paths)
+      if (!move && aiDifficulty > 0.7) {
+        // Check for potential fork opportunities for AI
+        const forkMove = findForkMove(board, "O")
+        if (forkMove) {
+          move = forkMove
+        }
+
+        // Block player's fork opportunities
+        if (!move) {
+          const blockForkMove = findForkMove(board, "X")
+          if (blockForkMove) {
+            move = blockForkMove
+          }
+        }
+      }
+
+      // For highest difficulties, use center and corners strategically
+      if (!move && aiDifficulty > 0.8) {
+        // Take center if available (good strategic position)
+        const center = Math.floor(size / 2)
+        if (board[center][center] === null) {
+          move = [center, center]
+        }
+        // Otherwise prefer corners
+        else {
+          const corners: [number, number][] = [
+            [0, 0],
+            [0, size - 1],
+            [size - 1, 0],
+            [size - 1, size - 1],
+          ]
+
+          for (const corner of corners) {
+            const [r, c] = corner
+            if (board[r][c] === null) {
+              move = [r, c]
+              break
+            }
+          }
+        }
+      }
     }
 
     // Random move if no smart move found or based on difficulty
@@ -211,9 +257,95 @@ export function GameBoard({
     setCurrentPlayer("X")
   }
 
+  // Add this helper function for the enhanced AI
+  const findForkMove = (board: CellValue[][], player: "X" | "O"): [number, number] | undefined => {
+    // A fork is where a player has two winning ways
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        if (board[i][j] === null) {
+          const newBoard = [...board.map((row) => [...row])]
+          newBoard[i][j] = player
+
+          // Count how many winning ways this move creates
+          let winningWays = 0
+
+          // Check rows, columns, and diagonals
+          // Horizontal
+          let count = 0
+          for (let c = 0; c < size; c++) {
+            if (newBoard[i][c] === player) count++
+            else if (newBoard[i][c] !== null) {
+              count = 0
+              break
+            }
+          }
+          if (count > 0 && count === size - 1) winningWays++
+
+          // Vertical
+          count = 0
+          for (let r = 0; r < size; r++) {
+            if (newBoard[r][j] === player) count++
+            else if (newBoard[r][j] !== null) {
+              count = 0
+              break
+            }
+          }
+          if (count > 0 && count === size - 1) winningWays++
+
+          // Diagonal
+          if (i === j) {
+            count = 0
+            for (let d = 0; d < size; d++) {
+              if (newBoard[d][d] === player) count++
+              else if (newBoard[d][d] !== null) {
+                count = 0
+                break
+              }
+            }
+            if (count > 0 && count === size - 1) winningWays++
+          }
+
+          // Anti-diagonal
+          if (i + j === size - 1) {
+            count = 0
+            for (let d = 0; d < size; d++) {
+              if (newBoard[d][size - 1 - d] === player) count++
+              else if (newBoard[d][size - 1 - d] !== null) {
+                count = 0
+                break
+              }
+            }
+            if (count > 0 && count === size - 1) winningWays++
+          }
+
+          if (winningWays >= 2) {
+            return [i, j]
+          }
+        }
+      }
+    }
+
+    return undefined
+  }
+
   const renderCell = (row: number, col: number) => {
     const value = board[row][col]
     const isWinningCell = winningCells.some(([r, c]) => r === row && c === col)
+
+    // Calculate size classes based on board size
+    const sizeClasses =
+      {
+        3: "h-16 w-16", // 3x3 board
+        4: "h-14 w-14", // 4x4 board
+        5: "h-12 w-12", // 5x5 board
+      }[size] || "h-12 w-12"
+
+    const iconSize =
+      {
+        3: "h-8 w-8", // 3x3 board
+        4: "h-7 w-7", // 4x4 board
+        5: "h-6 w-6", // 5x5 board
+      }[size] || "h-6 w-6"
 
     return (
       <button
@@ -228,8 +360,8 @@ export function GameBoard({
         onClick={() => handleCellClick(row, col)}
         disabled={!!winner || value !== null || currentPlayer !== "X"}
       >
-        {value === "X" && <X className="h-8 w-8 text-white" strokeWidth={1.5} />}
-        {value === "O" && <Circle className="h-7 w-7 text-white" strokeWidth={1.5} />}
+        {value === "X" && <X className={`${iconSize} text-white`} strokeWidth={1.5} />}
+        {value === "O" && <Circle className={`${iconSize} text-white`} strokeWidth={1.5} />}
       </button>
     )
   }
@@ -298,14 +430,26 @@ export function GameBoard({
       </div>
 
       <div
-        className="grid gap-[1px] mb-4 p-[1px] bg-white bg-opacity-10"
+        className={cn("grid gap-[1px] mb-4 p-[1px] bg-white bg-opacity-10", size > 3 ? "max-w-[350px] mx-auto" : "")}
         style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
       >
         {board.map((row, rowIndex) => row.map((_, colIndex) => renderCell(rowIndex, colIndex)))}
       </div>
 
       <div className="text-center text-xs text-gray-400 font-mono">
-        WIN {3 - playerScore} MORE {playerScore === 2 ? "MATCH" : "MATCHES"} TO COMPLETE STAGE
+        {(() => {
+          // Calculate wins required based on stage
+          const winsRequired = stageId <= 3 ? 3 : stageId <= 6 ? 4 : 5
+          const remaining = winsRequired - playerScore
+          return (
+            <>
+              WIN {remaining} MORE {remaining === 1 ? "MATCH" : "MATCHES"} TO COMPLETE STAGE
+              <div className="mt-1 text-gray-500">
+                {size}×{size} GRID • {winCondition} IN A ROW TO WIN
+              </div>
+            </>
+          )
+        })()}
       </div>
     </div>
   )

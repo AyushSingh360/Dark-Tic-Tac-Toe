@@ -10,11 +10,16 @@ import { Trophy, Star, ChevronRight } from "lucide-react"
 
 // Game stages with increasing difficulty
 const stages = [
-  { id: 1, name: "INIT", size: 3, winCondition: 3, aiDifficulty: 0.2 },
-  { id: 2, name: "LEVEL 1", size: 3, winCondition: 3, aiDifficulty: 0.5 },
-  { id: 3, name: "LEVEL 2", size: 3, winCondition: 3, aiDifficulty: 0.7 },
-  { id: 4, name: "LEVEL 3", size: 3, winCondition: 3, aiDifficulty: 0.9 },
-  { id: 5, name: "FINAL", size: 4, winCondition: 4, aiDifficulty: 0.9 },
+  { id: 1, name: "INIT", size: 3, winCondition: 3, aiDifficulty: 0.2, description: "BASIC SYSTEM CALIBRATION" },
+  { id: 2, name: "LEVEL 1", size: 3, winCondition: 3, aiDifficulty: 0.4, description: "NEURAL NETWORK ACTIVE" },
+  { id: 3, name: "LEVEL 2", size: 3, winCondition: 3, aiDifficulty: 0.6, description: "PATTERN RECOGNITION ENABLED" },
+  { id: 4, name: "LEVEL 3", size: 3, winCondition: 3, aiDifficulty: 0.8, description: "PREDICTIVE ALGORITHMS ONLINE" },
+  { id: 5, name: "ADVANCED", size: 4, winCondition: 3, aiDifficulty: 0.6, description: "EXPANDED GRID PARAMETERS" },
+  { id: 6, name: "EXPERT", size: 4, winCondition: 4, aiDifficulty: 0.7, description: "STRATEGIC SUBROUTINES ACTIVE" },
+  { id: 7, name: "MASTER", size: 4, winCondition: 4, aiDifficulty: 0.9, description: "ENHANCED DECISION MATRIX" },
+  { id: 8, name: "COMPLEX", size: 5, winCondition: 4, aiDifficulty: 0.7, description: "COMPLEX SPATIAL ANALYSIS" },
+  { id: 9, name: "QUANTUM", size: 5, winCondition: 5, aiDifficulty: 0.8, description: "QUANTUM PROBABILITY MAPPING" },
+  { id: 10, name: "FINAL", size: 5, winCondition: 5, aiDifficulty: 0.95, description: "MAXIMUM SYSTEM CAPACITY" },
 ]
 
 export default function TicTacToe() {
@@ -56,6 +61,10 @@ export default function TicTacToe() {
     setGameKey((prev) => prev + 1)
   }
 
+  const getStageDescription = (stageIndex: number) => {
+    return stages[stageIndex].description || ""
+  }
+
   const currentStageData = stages[currentStage]
   const progress = (completedStages.length / stages.length) * 100
 
@@ -66,17 +75,38 @@ export default function TicTacToe() {
       <div className="mb-6 text-center">
         <h1 className="text-3xl font-bold mb-2 text-white tracking-widest">NEXUS TIC-TAC</h1>
         <div className="flex items-center justify-between mb-2">
-          <Badge
-            variant="outline"
-            className="bg-black text-white border-white border-opacity-30 tracking-wider font-mono text-xs"
-          >
-            STAGE {currentStageData.id}: {currentStageData.name}
-          </Badge>
-          <div className="flex items-center font-mono text-xs">
-            <Trophy className="h-4 w-4 text-white mr-1" />
-            <span>
-              {completedStages.length}/{stages.length} COMPLETE
-            </span>
+          <div className="flex flex-col items-start">
+            <Badge
+              variant="outline"
+              className="bg-black text-white border-white border-opacity-30 tracking-wider font-mono text-xs"
+            >
+              STAGE {currentStageData.id}: {currentStageData.name}
+            </Badge>
+            <div className="flex items-center mt-1">
+              <div className="text-xs text-gray-500 font-mono mr-2">DIFFICULTY:</div>
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1 w-4 mx-px ${
+                      i < Math.ceil(currentStageData.aiDifficulty * 5) ? "bg-white" : "bg-white bg-opacity-20"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mt-1 font-mono">{getStageDescription(currentStage)}</div>
+          <div className="flex flex-col items-end">
+            <div className="flex items-center font-mono text-xs">
+              <Trophy className="h-4 w-4 text-white mr-1" />
+              <span>
+                {completedStages.length}/{stages.length} COMPLETE
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 font-mono mt-1">
+              STAGE {Math.min(currentStage + 1, stages.length)}/{stages.length}
+            </div>
           </div>
         </div>
         <Progress value={progress} className="h-1 bg-black border border-white border-opacity-20" />
@@ -90,7 +120,7 @@ export default function TicTacToe() {
               NEXT STAGE <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
             <div className="text-center text-sm text-gray-400 my-2 font-mono">OR SELECT STAGE</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {stages.map((stage, index) => (
                 <Button
                   key={stage.id}
@@ -101,6 +131,7 @@ export default function TicTacToe() {
                     font-mono text-xs tracking-wider
                   `}
                   onClick={() => selectStage(index)}
+                  disabled={!completedStages.includes(stage.id) && index !== currentStage && index !== 0}
                 >
                   {stage.id}
                   {completedStages.includes(stage.id) && <Star className="h-3 w-3 ml-1 text-white" />}
@@ -115,6 +146,7 @@ export default function TicTacToe() {
           size={currentStageData.size}
           winCondition={currentStageData.winCondition}
           aiDifficulty={currentStageData.aiDifficulty}
+          stageId={currentStageData.id}
           onStageComplete={() => handleStageComplete(currentStageData.id)}
           onReset={resetGame}
         />
