@@ -62,6 +62,17 @@ export function GameBoard({
     }
   }, [winner])
 
+  // Auto-reset the board after a win or draw
+  useEffect(() => {
+    if (winner) {
+      const timeoutId = setTimeout(() => {
+        resetBoard()
+      }, 1500) // Wait 1.5 seconds before resetting
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [winner])
+
   const resetBoard = () => {
     setBoard(
       Array(size)
