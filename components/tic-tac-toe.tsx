@@ -152,7 +152,7 @@ export default function TicTacToe() {
         />
       )}
       <div className="mt-8 text-center text-xs text-gray-500 font-mono tracking-wider border-t border-white border-opacity-10 pt-4">
-        © ASH ALL RIGHTS RESERVED
+        ©ASH ALL RIGHTS RESERVED
       </div>
     </div>
   )
