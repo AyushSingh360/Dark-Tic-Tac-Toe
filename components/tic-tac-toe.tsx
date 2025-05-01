@@ -73,7 +73,7 @@ export default function TicTacToe() {
       {showCelebration && <Celebration />}
 
       <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold mb-2 text-white tracking-widest">NEXUS TIC-TAC</h1>
+        <h1 className="text-3xl font-bold mb-2 text-white tracking-widest">ASH TIC-TAC</h1>
         <div className="flex items-center justify-between mb-2">
           <div className="flex flex-col items-start">
             <Badge
@@ -151,6 +151,9 @@ export default function TicTacToe() {
           onReset={resetGame}
         />
       )}
+      <div className="mt-8 text-center text-xs text-gray-500 font-mono tracking-wider border-t border-white border-opacity-10 pt-4">
+        © ASH ALL RIGHTS RESERVED
+      </div>
     </div>
   )
 }
