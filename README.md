@@ -5,7 +5,7 @@
 
 A futuristic black and white Tic Tac Toe game with progressive difficulty stages and advanced AI.
 
-![Game Screenshot](/placeholder.svg?height=300&width=500)
+![Game Screenshot](/Output.jpeg?height=300&width=500)
 
 ## Features
 
