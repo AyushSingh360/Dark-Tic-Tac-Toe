@@ -61,7 +61,7 @@ The game features 10 progressive stages:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ash-tic-tac.git
+   git clone https://github.com/AyushSingh360/ash-tic-tac.git
    cd ash-tic-tac
 ```
 
